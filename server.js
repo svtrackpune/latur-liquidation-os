@@ -3,30 +3,28 @@ const { parse } = require('url');
 const next = require('next');
 const fs = require('fs');
 
-// Normalize the working directory to the canonical filesystem casing before
-// Next resolves modules. This avoids Windows/Plesk path-casing duplication.
+// Windows/Plesk/iisnode exposes PORT as a named pipe, not necessarily a number.
+// Resolve the physical application path before Next resolves modules.
 const canonicalRoot = fs.realpathSync(__dirname);
 process.chdir(canonicalRoot);
 
 const dev = false;
 const hostname = '0.0.0.0';
 
-// Plesk normally supplies PORT. Some Plesk/Windows configurations expose an
-// empty/non-numeric PORT value, which must not be passed to Node's listen().
-const parsedPort = Number(process.env.PORT);
-const port = Number.isInteger(parsedPort) && parsedPort > 0 && parsedPort < 65536
-  ? parsedPort
-  : 3000;
+// Next needs a numeric port for its internal configuration, while IISNode
+// needs the actual Plesk PORT target (often a named pipe) for the HTTP server.
+const nextPort = 3000;
+const listenTarget = process.env.PORT || nextPort;
 
-const app = next({ dev, hostname, port, dir: canonicalRoot });
+const app = next({ dev, hostname, port: nextPort, dir: canonicalRoot });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
   createServer((req, res) => {
     const parsedUrl = parse(req.url, true);
     handle(req, res, parsedUrl);
-  }).listen(port, hostname, () => {
-    console.log(`> Ready on http://${hostname}:${port}`);
+  }).listen(listenTarget, hostname, () => {
+    console.log(`> Ready; listening on ${listenTarget}`);
   });
 }).catch((error) => {
   console.error(error);
