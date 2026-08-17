@@ -2,17 +2,22 @@ const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
 const fs = require('fs');
-const path = require('path');
 
 // Normalize the working directory to the canonical filesystem casing before
-// Next/webpack resolves any modules. This prevents Windows/Plesk from exposing
-// the same project as both C:\\Inetpub and C:\\inetpub.
+// Next resolves modules. This avoids Windows/Plesk path-casing duplication.
 const canonicalRoot = fs.realpathSync(__dirname);
 process.chdir(canonicalRoot);
 
 const dev = false;
-const hostname = process.env.HOSTNAME || '0.0.0.0';
-const port = parseInt(process.env.PORT || '3000', 10);
+const hostname = '0.0.0.0';
+
+// Plesk normally supplies PORT. Some Plesk/Windows configurations expose an
+// empty/non-numeric PORT value, which must not be passed to Node's listen().
+const parsedPort = Number(process.env.PORT);
+const port = Number.isInteger(parsedPort) && parsedPort > 0 && parsedPort < 65536
+  ? parsedPort
+  : 3000;
+
 const app = next({ dev, hostname, port, dir: canonicalRoot });
 const handle = app.getRequestHandler();
 
@@ -23,4 +28,7 @@ app.prepare().then(() => {
   }).listen(port, hostname, () => {
     console.log(`> Ready on http://${hostname}:${port}`);
   });
+}).catch((error) => {
+  console.error(error);
+  process.exit(1);
 });
