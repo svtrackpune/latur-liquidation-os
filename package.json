@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
-    "next": "^15.5.18",
-    "react": "^19.1.7",
-    "react-dom": "^19.1.7"
+    "next": "15.5.18",
+    "react": "19.1.9",
+    "react-dom": "19.1.9"
   },
   "devDependencies": {
     "@types/node": "^20.19.11",
