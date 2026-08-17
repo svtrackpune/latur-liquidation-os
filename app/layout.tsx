@@ -1,9 +1,4 @@
-import './globals.css';
-import Link from 'next/link';
-
-export const metadata = { title: 'Latur Liquidation OS', description: 'Procurement, inventory, sales and AI operating system' };
-
-const nav = [
-  ['Dashboard','/'],['Suppliers','/suppliers'],['RFQs & Quotes','/rfqs'],['Purchases & Lots','/purchases'],['Inventory','/inventory'],['Customers & WhatsApp','/customers'],['Sales','/sales'],['Marketing & Towns','/marketing'],['Accounting','/accounting'],['AI Assistant','/ai'],['Settings','/settings']
-];
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en"><body><aside><div className="brand">Latur Liquidation OS<span>Business Control Center</span></div>{nav.map(([label,href])=><Link key={href} href={href}>{label}</Link>)}</aside><main><header><div><strong>Liquidation Operations</strong><small>Procurement → Inventory → Sales → Profit</small></div><div className="status">● System Ready</div></header>{children}</main></body></html>}
+import './globals.css';import Link from 'next/link';import {currentUser,can} from '@/lib/auth';
+export const metadata={title:'Latur Liquidation OS',description:'Procurement, inventory, sales and AI operating system'};
+const nav:[string,string,string][]=[['Dashboard','/','dashboard'],['Suppliers','/suppliers','suppliers'],['RFQs & Quotes','/rfqs','rfqs'],['Purchases & Lots','/purchases','purchases'],['Inventory','/inventory','inventory'],['Customers & WhatsApp','/customers','customers'],['Sales','/sales','sales'],['Marketing & Towns','/marketing','marketing'],['Accounting','/accounting','accounting'],['AI Assistant','/ai','ai'],['Settings','/settings','settings']];
+export default async function RootLayout({children}:{children:React.ReactNode}){const u=await currentUser();return <html lang="en"><body>{u&&<aside><div className="brand">Latur Liquidation OS<span>Business Control Center</span></div>{nav.filter(([,href,section])=>href==='/'||can(u.role,section)).map(([label,href])=><Link key={href} href={href}>{label}</Link>)}<div className="userBox"><strong>{u.username}</strong><small>{u.role}</small><form action="/api/auth/logout" method="post"><button className="logout">Sign out</button></form></div></aside>}<main className={u?'':'publicMain'}>{u&&<header><div><strong>Liquidation Operations</strong><small>Procurement → Inventory → Sales → Profit</small></div><div className="status">● {u.role} access</div></header>}{children}</main></body></html>}
