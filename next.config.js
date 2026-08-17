@@ -6,8 +6,6 @@ const path = require('path');
  * casing (for example C:\\Inetpub vs C:\\inetpub). Webpack treats those as
  * different module identifiers, which can result in duplicate React/Next
  * instances and hook failures such as useContext(null).
- *
- * Keep the project root and React resolution on one canonical real path.
  */
 const projectRoot = fs.realpathSync(process.cwd());
 const nodeModules = path.join(projectRoot, 'node_modules');
