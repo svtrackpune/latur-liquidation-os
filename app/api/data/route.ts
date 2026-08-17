@@ -1,24 +1,8 @@
-import {NextResponse} from 'next/server';
-import {supabaseAdmin} from '@/lib/serverSupabase';
-
-const TABLES=new Set(['suppliers','rfqs','quotes','lots','products','customers','conversations','messages','sales','sale_items','campaigns','expenses','tasks','towns','categories','business_settings','supplier_visits','rfq_suppliers']);
-
-export async function GET(req:Request){
- try{const table=new URL(req.url).searchParams.get('table')||'';if(!TABLES.has(table))return NextResponse.json({error:'Invalid table'},{status:400});const sb=supabaseAdmin();const {data,error}=await sb.from(table).select('*').order('created_at',{ascending:false}).limit(200);if(error)throw error;return NextResponse.json({data:data||[]});}
- catch(e:any){return NextResponse.json({error:e.message||'Database error'},{status:500})}
-}
-
-export async function POST(req:Request){
- try{const {table,row}=await req.json();if(!TABLES.has(table))return NextResponse.json({error:'Invalid table'},{status:400});if(!row||typeof row!=='object')return NextResponse.json({error:'Invalid row'},{status:400});const sb=supabaseAdmin();const {data,error}=await sb.from(table).insert(row).select().single();if(error)throw error;return NextResponse.json({data});}
- catch(e:any){return NextResponse.json({error:e.message||'Database error'},{status:500})}
-}
-
-export async function PATCH(req:Request){
- try{const {table,id,row}=await req.json();if(!TABLES.has(table)||!id)return NextResponse.json({error:'Invalid request'},{status:400});const sb=supabaseAdmin();const {data,error}=await sb.from(table).update(row).eq('id',id).select().single();if(error)throw error;return NextResponse.json({data});}
- catch(e:any){return NextResponse.json({error:e.message||'Database error'},{status:500})}
-}
-
-export async function DELETE(req:Request){
- try{const {table,id}=await req.json();if(!TABLES.has(table)||!id)return NextResponse.json({error:'Invalid request'},{status:400});const sb=supabaseAdmin();const {error}=await sb.from(table).delete().eq('id',id);if(error)throw error;return NextResponse.json({ok:true});}
- catch(e:any){return NextResponse.json({error:e.message||'Database error'},{status:500})}
-}
+import {NextResponse} from 'next/server';import {supabaseAdmin} from '@/lib/serverSupabase';import {currentUser,can} from '@/lib/auth';
+const TABLES=new Set(['suppliers','rfqs','quotes','lots','products','product_media','customers','conversations','messages','sales','sale_items','campaigns','expenses','tasks','towns','categories','business_settings','supplier_visits','rfq_suppliers','staff_users']);
+const TABLE_SECTION:Record<string,string>={suppliers:'suppliers',rfqs:'rfqs',quotes:'rfqs',lots:'purchases',supplier_visits:'suppliers',rfq_suppliers:'rfqs',products:'inventory',product_media:'inventory',customers:'customers',conversations:'customers',messages:'customers',sales:'sales',sale_items:'sales',campaigns:'marketing',towns:'marketing',expenses:'accounting',tasks:'dashboard',categories:'settings',business_settings:'settings',staff_users:'settings'};
+async function auth(table:string,write=false){const u=await currentUser();if(!u)return {error:NextResponse.json({error:'Unauthorized'},{status:401})};const section=TABLE_SECTION[table];if(!can(u.role,section)|| (table==='staff_users'&&u.role!=='admin'))return {error:NextResponse.json({error:'Forbidden'},{status:403})};return {u};}
+export async function GET(req:Request){try{const table=new URL(req.url).searchParams.get('table')||'';if(!TABLES.has(table))return NextResponse.json({error:'Invalid table'},{status:400});const a=await auth(table);if(a.error)return a.error;const sb=supabaseAdmin();const {data,error}=await sb.from(table).select('*').order('created_at',{ascending:false}).limit(200);if(error)throw error;return NextResponse.json({data:data||[]});}catch(e:any){return NextResponse.json({error:e.message||'Database error'},{status:500})}}
+export async function POST(req:Request){try{const {table,row}=await req.json();if(!TABLES.has(table)||!row||typeof row!=='object')return NextResponse.json({error:'Invalid request'},{status:400});const a=await auth(table,true);if(a.error)return a.error;const sb=supabaseAdmin();const {data,error}=await sb.from(table).insert(row).select().single();if(error)throw error;return NextResponse.json({data});}catch(e:any){return NextResponse.json({error:e.message||'Database error'},{status:500})}}
+export async function PATCH(req:Request){try{const {table,id,row}=await req.json();if(!TABLES.has(table)||!id)return NextResponse.json({error:'Invalid request'},{status:400});const a=await auth(table,true);if(a.error)return a.error;const sb=supabaseAdmin();const {data,error}=await sb.from(table).update(row).eq('id',id).select().single();if(error)throw error;return NextResponse.json({data});}catch(e:any){return NextResponse.json({error:e.message||'Database error'},{status:500})}}
+export async function DELETE(req:Request){try{const {table,id}=await req.json();if(!TABLES.has(table)||!id)return NextResponse.json({error:'Invalid request'},{status:400});const a=await auth(table,true);if(a.error)return a.error;const sb=supabaseAdmin();const {error}=await sb.from(table).delete().eq('id',id);if(error)throw error;return NextResponse.json({ok:true});}catch(e:any){return NextResponse.json({error:e.message||'Database error'},{status:500})}}
