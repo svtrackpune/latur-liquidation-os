@@ -1,11 +1,7 @@
-import { NextResponse } from 'next/server';
-
+import {NextResponse} from 'next/server';
+import {loginStaff,makeSession} from '@/lib/auth';
 export async function POST(req:Request){
-  const {pin}=await req.json().catch(()=>({pin:''}));
-  const expected=process.env.APP_ADMIN_PIN;
-  if(!expected) return NextResponse.json({error:'APP_ADMIN_PIN is not configured.'},{status:500});
-  if(String(pin)!==expected) return NextResponse.json({error:'Invalid PIN'},{status:401});
-  const res=NextResponse.json({ok:true});
-  res.cookies.set('llo_session',process.env.APP_SESSION_SECRET || expected,{httpOnly:true,secure:true,sameSite:'lax',path:'/',maxAge:60*60*12});
-  return res;
+ try{const {username,password}=await req.json();const u=await loginStaff(String(username||''),String(password||''));if(!u)return NextResponse.json({error:'Invalid username or password'},{status:401});
+ const res=NextResponse.json({ok:true,user:{username:u.username,role:u.role,displayName:u.displayName}});res.cookies.set('llo_session',makeSession(u.username,u.role),{httpOnly:true,secure:true,sameSite:'lax',path:'/',maxAge:60*60*12});return res;
+ }catch(e:any){return NextResponse.json({error:e.message||'Login failed'},{status:500})}
 }
