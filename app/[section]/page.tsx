@@ -1,13 +1,6 @@
-const data:Record<string,{title:string;desc:string;actions:string[];columns:string[]}>={
- suppliers:{title:'Suppliers',desc:'Find, verify, score and manage every vendor.',actions:['Add supplier','Import supplier list','Supplier follow-up queue'],columns:['Company','City','Categories','MOQ','Quality','Authenticity','Commercial','Total','Status']},
- rfqs:{title:'RFQs & Quotes',desc:'Standardized enquiries and apples-to-apples quotation comparison.',actions:['New RFQ','Send follow-ups','Compare quotes'],columns:['Supplier','Product','Qty','Grade','Unit Price','Freight','Landed Cost','Expected Recovery','ROI','Status']},
- purchases:{title:'Purchases & Lots',desc:'Evaluate, approve and track every liquidation lot.',actions:['New lot','Evaluate lot','Record purchase'],columns:['Lot','Supplier','Purchase','Freight','Landed Cost','Expected Recovery','Actual Sales','ROI','Status']},
- inventory:{title:'Inventory',desc:'SKU-level stock, grading, testing, pricing and ageing.',actions:['Receive stock','Add product','Run ageing report'],columns:['SKU','Product','Brand','Grade','Landed Cost','Selling Price','Status','Age']},
- customers:{title:'Customers & WhatsApp',desc:'Customer leads, conversations, reservations and AI-assisted replies.',actions:['New customer','WhatsApp inbox','AI follow-ups'],columns:['Customer','Mobile','Town','Intent','Source','Last Message','Status']},
- sales:{title:'Sales',desc:'Retail, WhatsApp and town-event sales with product-level profitability.',actions:['New sale','Returns','Daily sales report'],columns:['Invoice','Customer','Product','Sale Price','Discount','Payment','Channel','Town','Date']},
- marketing:{title:'Marketing & Towns',desc:'Latur campaigns and Sunday liquidation events measured by demand and profit.',actions:['New campaign','Town demand score','Ad performance'],columns:['Campaign','Town','Budget','Spend','Leads','Prebookings','Sales','Revenue','ROI','Status']},
- accounting:{title:'Accounting',desc:'Expenses, lot P&L, cash flow and accounting exports.',actions:['Record expense','Lot P&L','Export CSV'],columns:['Date','Category','Description','Amount','GST','Payment','Lot']},
- ai:{title:'AI Assistant',desc:'Ask business questions using your procurement, inventory, sales and P&L data.',actions:['Evaluate a quote','Find best supplier','Analyze stock'],columns:['Prompt','Context','Recommendation','Confidence']},
- settings:{title:'Settings',desc:'Business rules, categories, integrations, users and automation.',actions:['Business rules','WhatsApp setup','Meta Ads setup','Users'],columns:['Setting','Value','Status']}
-};
-export default async function Section({params}:{params:Promise<{section:string}>}){const {section}=await params;const d=data[section]??{title:'Page',desc:'Business control center',actions:['Add record'],columns:['Item','Status']};return <div className="page"><div className="title"><div><h1>{d.title}</h1><p>{d.desc}</p></div><div>{d.actions.slice(0,2).map(a=><button className="btn" style={{marginLeft:8}} key={a}>{a}</button>)}</div></div><section className="panel"><div className="row"><strong>Ready for live data</strong><span className="badge">Supabase connection required</span></div><table className="table"><thead><tr>{d.columns.map(c=><th key={c}>{c}</th>)}</tr></thead><tbody><tr><td colSpan={d.columns.length}>No records yet. Add the first record to start the workflow.</td></tr></tbody></table></section></div>}
+import SectionClient from './SectionClient';
+
+export default async function Section({params}:{params:Promise<{section:string}>}){
+  const {section}=await params;
+  return <SectionClient section={section}/>;
+}
