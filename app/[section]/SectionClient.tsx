@@ -29,7 +29,7 @@ export default function SectionClient({section,role}:{section:string;role:string
  const toggleStaff=async(s:any)=>{await fetch('/api/staff',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:s.id,active:!s.active})});loadStaff()};
  const del=async(id:string)=>{if(!confirm('Delete this record?'))return;const r=await fetch('/api/data',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({table:cfg.table,id})});const d=await r.json();if(!r.ok)setError(d.error||'Delete failed');else load()};
  const askAI=async()=>{const r=await fetch('/api/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:ai})});const d=await r.json();setReply(d.reply||d.error||'No response')};
- const canAdd=role==='admin'&&section!=='sales'&&section!=='customers'&&section!=='marketing'&&section!=='accounting';
+ const canAdd=role==='admin'&&section!=='ai';
  const inventoryColumns=section==='inventory'&&role!=='admin'&&role!=='manager'?['sku','product_name','brand','grade','selling_price','status','location']:cfg.columns;
  if(section==='ai')return <div className="page"><div className="title"><div><h1>AI Assistant</h1><p>Evaluate quotes, suppliers, stock and P&L decisions.</p></div></div><section className="panel"><textarea className="input" rows={5} value={ai} onChange={e=>setAi(e.target.value)} placeholder="Ask a business question…"/><button className="btn" style={{marginTop:10}} onClick={askAI}>Ask AI</button>{reply&&<div className="panel" style={{marginTop:15,whiteSpace:'pre-wrap'}}>{reply}</div>}</section></div>;
  return <div className="page">
