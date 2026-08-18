@@ -8,7 +8,7 @@ type Group={title:string;items:Item[]};
 
 export default function NavDrawer({groups,user}:{groups:Group[];user:{username:string;role:string}}){
   const [open,setOpen]=useState(false);
-  const [expanded,setExpanded]=useState<string[]>([]);
+  const [expanded,setExpanded]=useState<string|null>(null);
 
   useEffect(()=>{
     const close=()=>setOpen(false);
@@ -16,7 +16,7 @@ export default function NavDrawer({groups,user}:{groups:Group[];user:{username:s
     return()=>window.removeEventListener('resize',close);
   },[]);
 
-  const toggleGroup=(title:string)=>setExpanded(v=>v.includes(title)?v.filter(x=>x!==title):[...v,title]);
+  const toggleGroup=(title:string)=>setExpanded(v=>v===title?null:title);
 
   return <>
     <button className="menuButton" type="button" aria-label="Open navigation" aria-expanded={open} onClick={()=>setOpen(true)}>
@@ -28,17 +28,26 @@ export default function NavDrawer({groups,user}:{groups:Group[];user:{username:s
         <div className="brand">Latur Liquidation OS<span>Business Control Center</span></div>
         <button className="drawerClose" type="button" aria-label="Close navigation" onClick={()=>setOpen(false)}>×</button>
       </div>
-      <nav>
-        {groups.map(group=>{const isExpanded=expanded.includes(group.title);return <div className="navGroup" key={group.title}>
-          <button className={`navGroupTitle${isExpanded?' expanded':''}`} type="button" aria-expanded={isExpanded} onClick={()=>toggleGroup(group.title)}>
-            <span>{group.title}</span><span className="navChevron" aria-hidden="true">⌄</span>
-          </button>
-          <div className={`navGroupItems${isExpanded?' expanded':''}`}>
-            {group.items.map(item=><Link key={item.href} href={item.href} onClick={()=>setOpen(false)}>{item.label}</Link>)}
-          </div>
-        </div>})}
+
+      <nav className="drawerNav">
+        {groups.map(group=>{
+          const isExpanded=expanded===group.title;
+          return <section className="navGroup" key={group.title}>
+            <button className={`navGroupTitle${isExpanded?' expanded':''}`} type="button" aria-expanded={isExpanded} onClick={()=>toggleGroup(group.title)}>
+              <span>{group.title}</span><span className="navChevron" aria-hidden="true">⌄</span>
+            </button>
+            {isExpanded&&<div className="navGroupItems">
+              {group.items.map(item=><Link key={item.href} href={item.href} onClick={()=>setOpen(false)}>{item.label}</Link>)}
+            </div>}
+          </section>;
+        })}
       </nav>
-      <div className="userBox"><strong>{user.username}</strong><small>{user.role}</small><form action="/api/auth/logout" method="post"><button className="logout">Sign out</button></form></div>
+
+      <div className="userBox">
+        <strong>{user.username}</strong>
+        <small>{user.role}</small>
+        <form action="/api/auth/logout" method="post"><button className="logout">Sign out</button></form>
+      </div>
     </aside>
   </>;
 }
